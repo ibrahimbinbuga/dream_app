@@ -56,6 +56,7 @@ ios/Pods/
 ios/Podfile.lock
 macos/Pods/
 macos/Podfile.lock
+ios/Runner/GoogleService-Info.plist
 
 # Flutter generated files
 .flutter-plugins
