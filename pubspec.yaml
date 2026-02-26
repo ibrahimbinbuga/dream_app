@@ -65,6 +65,8 @@ dev_dependencies:
 # The following section is specific to Flutter packages.
 flutter:
   assets:
+    - assets/icon.png
+    - assets/google_icon.png
     - .env
 
   # The following line ensures that the Material Icons font is

@@ -169,7 +169,9 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             children: [
               const SizedBox(height: 10),
-              const Icon(Icons.auto_awesome, size: 50, color: AppTheme.accentGold).animate().fade().scale(delay: 200.ms),
+              // --- KENDİ LOGOMUZ ---
+              Image.asset('assets/icon.png', width: 70, height: 70)
+                  .animate().fade().scale(delay: 200.ms),
               const SizedBox(height: 10),
               Text("Dream Oracle", style: AppTheme.darkTheme.textTheme.displayLarge).animate().fade().slideY(begin: -0.5, end: 0),
               const SizedBox(height: 8),

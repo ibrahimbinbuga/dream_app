@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart'; // Paket eklendi
+import 'package:flutter_animate/flutter_animate.dart'; 
 import '../core/theme.dart';
 import '../services/auth_service.dart';
 
@@ -70,22 +70,26 @@ class _AuthScreenState extends State<AuthScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // --- LOGO ANİMASYONU: Fade In + Scale ---
-                const Icon(Icons.auto_awesome, size: 80, color: AppTheme.accentGold)
-                    .animate()
-                    .fade(duration: 600.ms)
-                    .scale(delay: 200.ms, duration: 400.ms),
+                // --- KENDİ LOGOMUZ ---
+                // assets/icon.png dosyasını animasyonlu şekilde gösteriyoruz
+                Image.asset(
+                  'assets/icon.png',
+                  width: 120, // Logonun büyüklüğünü buradan ayarlayabilirsin
+                  height: 120,
+                )
+                .animate()
+                .fade(duration: 600.ms)
+                .scale(delay: 200.ms, duration: 400.ms),
                 
                 const SizedBox(height: 20),
                 
                 Text(
                   isLogin ? "Giriş Yap" : "Kahin'e Katıl",
                   style: AppTheme.darkTheme.textTheme.displayLarge,
-                ).animate().fade().slideY(begin: 0.3, end: 0), // Aşağıdan yukarı kayma
+                ).animate().fade().slideY(begin: 0.3, end: 0),
 
                 const SizedBox(height: 40),
 
-                // Text alanları sırayla gelsin (delay ile)
                 _buildTextField(_emailController, "E-posta", Icons.email)
                     .animate().fade(delay: 200.ms).slideX(begin: -0.2),
                 
@@ -96,7 +100,6 @@ class _AuthScreenState extends State<AuthScreen> {
 
                 const SizedBox(height: 30),
 
-                // Butonlar
                 SizedBox(
                   width: double.infinity,
                   height: 50,
@@ -133,7 +136,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       backgroundColor: Colors.white,
                       foregroundColor: Colors.black,
                     ),
-                    icon: const Icon(Icons.g_mobiledata, size: 40, color: Colors.red), 
+                    icon:  Image.asset('assets/google_icon.png', width: 40, height: 40), 
                     label: const Text("Google ile Devam Et", style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 ).animate().fade(delay: 600.ms).slideY(begin: 0.2),
