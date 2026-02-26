@@ -1,10 +1,23 @@
-import 'package:http/http.dart' as http;
+import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class DreamService {
-  
+  late final GenerativeModel _model;
+
+  DreamService() {
+    final apiKey = dotenv.env['GOOGLE_API_KEY'] ?? '';
+    if (apiKey.isEmpty) {
+      throw Exception('GOOGLE_API_KEY çevre değişkeni ayarlanmamış');
+    }
+    _model = GenerativeModel(
+      model: 'gemini-3-flash-preview',
+      apiKey: apiKey,
+    );
+  }
+
   Future<String> interpretDream(String dreamDescription, String style) async {
     print("------------------------------------------------");
-    print("🚀 YENİ SERVİS BAŞLADI: Pollinations AI - Stil: $style");
+    print("🚀 YENİ SERVİS BAŞLADI: Google Gemini AI - Stil: $style");
     print("------------------------------------------------");
 
     if (dreamDescription.trim().isEmpty) return "Lütfen rüyanı anlat...";
@@ -36,21 +49,19 @@ class DreamService {
           "Yorumun en sonunda mutlaka 'Şanslı Sayıların: X, Y, Z' formatında 3 sayı ver. "
           "Rüya: $dreamDescription";
 
-      final encodedPrompt = Uri.encodeComponent(prompt);
-      // Pollinations.ai ile ücretsiz gönderim
-      final url = Uri.parse('https://text.pollinations.ai/$encodedPrompt');
+      // Google Gemini API'yi çağırıyoruz
+      final content = [Content.text(prompt)];
+      final response = await _model.generateContent(content);
 
-      final response = await http.get(url);
-
-      if (response.statusCode == 200) {
-        print("✅ CEVAP GELDİ: ${response.body}");
-        return response.body;
+      if (response.text != null && response.text!.isNotEmpty) {
+        print("✅ CEVAP GELDİ: ${response.text}");
+        return response.text!;
       } else {
-        return "Yıldızlar şu an cevap veremiyor. (Hata: ${response.statusCode})";
+        return "Yıldızlar şu an cevap veremiyor. Lütfen tekrar dene.";
       }
     } catch (e) {
       print("❌ BAĞLANTI HATASI: $e");
-      return "Bağlantı hatası. İnternetini kontrol et.";
+      return "Bağlantı hatası. API anahtarını kontrol et ve interneti sağla.";
     }
   }
 }

@@ -8,6 +8,7 @@ import 'package:dream_app/screens/auth_screen.dart';
 import 'package:dream_app/screens/home_screen.dart';
 import 'package:dream_app/services/auth_service.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 
 // Firebase ayar dosyası (Bunu birazdan oluşturacağız, şimdilik hata verebilir)
@@ -16,7 +17,8 @@ import 'firebase_options.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  
+  // flutter_dotenv'ini başlat
+  await dotenv.load();
   
   // Firebase ve Reklamları başlat
   await Firebase.initializeApp(
