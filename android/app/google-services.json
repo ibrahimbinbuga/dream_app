@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "156433260912",
+    "project_id": "dream-app-if22dev",
+    "storage_bucket": "dream-app-if22dev.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:156433260912:android:96f3ba17479eb34db8efb5",
+        "android_client_info": {
+          "package_name": "com.example.dream_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "156433260912-rpbdhl6obhc961j34h4esugpg427d4ju.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.dream_app",
+            "certificate_hash": "b07cd11c8868be82fef26c72f696c2d31c208c07"
+          }
+        },
+        {
+          "client_id": "156433260912-vkhtphsfijvipd4onof5h2g5m2gor6s0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBCENt-_7trhIT0wgNYrszK5GTPCX-dhz4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "156433260912-vkhtphsfijvipd4onof5h2g5m2gor6s0.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "156433260912-566120odfmhgf47l4ih2v06fnoap7tat.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.dreamApp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
