@@ -1,52 +1,28 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  
-  // GoogleSignIn nesnesi (Parametresiz en sade haliyle)
-  // Scopes varsayılan olarak zaten email bilgisini içerir.
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
-  // Şu anki kullanıcıyı getir
-  User? get currentUser => _auth.currentUser;
-
-  // Kullanıcı durumunu dinle (Giriş/Çıkış takibi)
+  // Kullanıcının anlık durumunu dinleyen stream
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
-  // --- GOOGLE İLE GİRİŞ FONKSİYONU ---
-  Future<String?> signInWithGoogle() async {
+  // YENİ EKLENEN: Profil ekranı için mevcut kullanıcıyı döndürür
+  User? get currentUser => _auth.currentUser;
+
+  // E-posta ve Şifre ile Giriş
+  Future<String?> signIn({required String email, required String password}) async {
     try {
-      // 1. Google penceresini aç
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      
-      if (googleUser == null) {
-        return null; // Kullanıcı pencereyi kapattı
-      }
-
-      // 2. Google'dan yetki belgelerini al
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-
-      // 3. Firebase için kimlik kartı oluştur
-      final AuthCredential credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      // 4. Firebase'e giriş yap
-      await _auth.signInWithCredential(credential);
-      
-      return null; // Başarılı
+      await _auth.signInWithEmailAndPassword(email: email, password: password);
+      return null; // Başarılı, hata yok
     } on FirebaseAuthException catch (e) {
-      return e.message;
-    } catch (e) {
-      return "Google girişi başarısız oldu: $e";
+      return e.message; // Hata mesajını döndür
     }
   }
 
-  // --- DİĞER FONKSİYONLAR ---
-
-  // Kayıt Ol
+  // E-posta ve Şifre ile Kayıt
   Future<String?> signUp({required String email, required String password}) async {
     try {
       await _auth.createUserWithEmailAndPassword(email: email, password: password);
@@ -56,43 +32,73 @@ class AuthService {
     }
   }
 
-  // Giriş Yap (Email ile)
-  Future<String?> signIn({required String email, required String password}) async {
+  // Google ile Giriş Yap
+  Future<String?> signInWithGoogle() async {
     try {
-      await _auth.signInWithEmailAndPassword(email: email, password: password);
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) return null; // Kullanıcı iptal etti
+
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      await _auth.signInWithCredential(credential);
       return null;
     } on FirebaseAuthException catch (e) {
       return e.message;
+    } catch (e) {
+      return e.toString();
+    }
+  }
+
+  // Apple ile Giriş Yap
+  Future<String?> signInWithApple() async {
+    try {
+      final AuthorizationCredentialAppleID appleCredential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+      );
+
+      final OAuthProvider oAuthProvider = OAuthProvider('apple.com');
+      final AuthCredential credential = oAuthProvider.credential(
+        idToken: appleCredential.identityToken,
+        accessToken: appleCredential.authorizationCode,
+      );
+
+      await _auth.signInWithCredential(credential);
+      return null; // Başarılı
+    } on FirebaseAuthException catch (e) {
+      return e.message;
+    } catch (e) {
+      return "Apple ile giriş yapılamadı veya iptal edildi.";
     }
   }
 
   // Çıkış Yap
   Future<void> signOut() async {
-    try {
-      // Önce Google'dan çıkmayı dene, hata olursa önemseme
-      try {
-        await _googleSignIn.signOut();
-      } catch (_) {}
-      
-      await _auth.signOut(); // Firebase'den çık
-    } catch (e) {
-      print("Çıkış hatası: $e");
-    }
+    await _googleSignIn.signOut();
+    await _auth.signOut();
   }
 
-  // Hesabı Sil
+  // YENİ EKLENEN: Hesabı Sil (Dönüş tipi bool olarak güncellendi)
   Future<bool> deleteAccount() async {
     try {
-      // Önce Google'dan bağlantıyı kes (İsteğe bağlı ama temiz olur)
-      if (await _googleSignIn.isSignedIn()) {
-        await _googleSignIn.disconnect();
-      }
-      
       await _auth.currentUser?.delete();
-      return true;
+      return true; // İşlem başarılı
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'requires-recent-login') {
+        print("Güvenlik nedeniyle hesabınızı silmeden önce çıkış yapıp tekrar giriş yapmalısınız.");
+      } else {
+        print("Hesap silme hatası: ${e.message}");
+      }
+      return false; // İşlem başarısız
     } catch (e) {
-      print("Hesap silinemedi: $e");
-      return false;
+      print("Hesap silinirken bir hata oluştu: $e");
+      return false; // İşlem başarısız
     }
   }
 }

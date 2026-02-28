@@ -1,5 +1,7 @@
+import 'dart:io'; // Platform kontrolü için eklendi
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart'; 
+import 'package:sign_in_with_apple/sign_in_with_apple.dart'; // YENİ: Apple Sign in UI için
 import '../core/theme.dart';
 import '../services/auth_service.dart';
 
@@ -43,9 +45,18 @@ class _AuthScreenState extends State<AuthScreen> {
 
   Future<void> _googleSignIn() async {
     setState(() => isLoading = true);
-    
     String? error = await _authService.signInWithGoogle();
-    
+    setState(() => isLoading = false);
+
+    if (error != null && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
+    }
+  }
+
+  // Apple ile Giriş Butonunu Tetikleyen Fonksiyon
+  Future<void> _appleSignIn() async {
+    setState(() => isLoading = true);
+    String? error = await _authService.signInWithApple();
     setState(() => isLoading = false);
 
     if (error != null && mounted) {
@@ -55,6 +66,11 @@ class _AuthScreenState extends State<AuthScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Butonların köşe yuvarlaklık standartını belirliyoruz (12 pixel)
+    final shapeStandard = RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(12),
+    );
+
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -70,16 +86,8 @@ class _AuthScreenState extends State<AuthScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // --- KENDİ LOGOMUZ ---
-                // assets/icon.png dosyasını animasyonlu şekilde gösteriyoruz
-                Image.asset(
-                  'assets/icon.png',
-                  width: 120, // Logonun büyüklüğünü buradan ayarlayabilirsin
-                  height: 120,
-                )
-                .animate()
-                .fade(duration: 600.ms)
-                .scale(delay: 200.ms, duration: 400.ms),
+                Image.asset('assets/icon.png', width: 120, height: 120)
+                .animate().fade(duration: 600.ms).scale(delay: 200.ms, duration: 400.ms),
                 
                 const SizedBox(height: 20),
                 
@@ -100,12 +108,16 @@ class _AuthScreenState extends State<AuthScreen> {
 
                 const SizedBox(height: 30),
 
+                // --- GİRİŞ / KAYIT BUTONU ---
                 SizedBox(
                   width: double.infinity,
                   height: 50,
                   child: ElevatedButton(
                     onPressed: isLoading ? null : _submit,
-                    style: ElevatedButton.styleFrom(backgroundColor: AppTheme.accentGold),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.accentGold,
+                      shape: shapeStandard, // Standart köşe
+                    ),
                     child: isLoading 
                       ? const CircularProgressIndicator(color: Colors.black)
                       : Text(isLogin ? "Giriş" : "Kayıt Ol", style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
@@ -127,6 +139,9 @@ class _AuthScreenState extends State<AuthScreen> {
 
                 const SizedBox(height: 20),
 
+                // --- SOSYAL GİRİŞ BUTONLARI ---
+                
+                // GOOGLE BUTONU
                 SizedBox(
                   width: double.infinity,
                   height: 50,
@@ -135,11 +150,26 @@ class _AuthScreenState extends State<AuthScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
                       foregroundColor: Colors.black,
+                      shape: shapeStandard, // Standart köşe
                     ),
-                    icon:  Image.asset('assets/google_icon.png', width: 40, height: 40), 
+                    icon: const Icon(Icons.g_mobiledata, size: 40, color: Colors.red), 
                     label: const Text("Google ile Devam Et", style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 ).animate().fade(delay: 600.ms).slideY(begin: 0.2),
+
+                const SizedBox(height: 15),
+
+                // APPLE BUTONU (Sadece iOS cihazlarda gösterilir)
+                if (Platform.isIOS || Platform.isMacOS) 
+                  SizedBox(
+                    height: 50,
+                    child: SignInWithAppleButton(
+                      text: "Apple ile Devam Et",
+                      onPressed: isLoading ? () {} : _appleSignIn,
+                      style: SignInWithAppleButtonStyle.white, 
+                      borderRadius: const BorderRadius.all(Radius.circular(12.0)), // Standart köşe
+                    ),
+                  ).animate().fade(delay: 700.ms).slideY(begin: 0.2),
 
                 const SizedBox(height: 20),
 
@@ -149,7 +179,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     isLogin ? "Hesabın yok mu? Kayıt Ol" : "Zaten üye misin? Giriş Yap",
                     style: const TextStyle(color: Colors.white70),
                   ),
-                ).animate().fade(delay: 700.ms),
+                ).animate().fade(delay: 800.ms),
               ],
             ),
           ),
@@ -162,7 +192,7 @@ class _AuthScreenState extends State<AuthScreen> {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12), // Textfield'lar da 12px
       ),
       child: TextField(
         controller: controller,
