@@ -1,159 +1,129 @@
 import 'package:flutter/material.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../core/theme.dart';
+import '../services/purchase_service.dart';
 
-class PaywallScreen extends StatelessWidget {
+class PaywallScreen extends StatefulWidget {
   const PaywallScreen({super.key});
+
+  @override
+  State<PaywallScreen> createState() => _PaywallScreenState();
+}
+
+class _PaywallScreenState extends State<PaywallScreen> {
+  List<Package> _packages = [];
+  bool _isLoading = true;
+  bool _isPurchasing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchPackages();
+  }
+
+  Future<void> _fetchPackages() async {
+    final packages = await PurchaseService.fetchOffers();
+    setState(() {
+      _packages = packages;
+      _isLoading = false;
+    });
+  }
+
+  Future<void> _buyPackage(Package package) async {
+    setState(() => _isPurchasing = true);
+    
+    bool success = await PurchaseService.purchasePackage(package);
+    
+    setState(() => _isPurchasing = false);
+
+    if (success && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Premium aktif edildi! Büyülü dünyaya hoş geldin.", style: TextStyle(color: Colors.white)), backgroundColor: Colors.green),
+      );
+      Navigator.pop(context, true); // true dönerek ana ekrana haber veriyoruz
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Arka plana mistik bir gradyan atalım
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF050A30), Color(0xFF2A1B3D)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              children: [
-                // --- KAPAT BUTONU ---
-                Align(
-                  alignment: Alignment.topRight,
-                  child: IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white70),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ),
-                
-                const Spacer(),
-
-                // --- İKON & BAŞLIK ---
-                const Icon(Icons.diamond, size: 80, color: AppTheme.accentGold),
-                const SizedBox(height: 20),
-                Text(
-                  "Kahin Ol",
-                  style: AppTheme.darkTheme.textTheme.displayLarge,
-                ),
-                const SizedBox(height: 10),
-                const Text(
-                  "Bilinçaltının tüm kapılarını arala.",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.white70, fontSize: 16),
-                ),
-
-                const SizedBox(height: 40),
-
-                // --- AVANTAJLAR LİSTESİ ---
-                _buildFeatureItem("Reklamları Tamamen Kaldır"),
-                _buildFeatureItem("Sınırsız Rüya Yorumu"),
-                _buildFeatureItem("Detaylı Psikolojik Analiz"),
-                _buildFeatureItem("Rüya Günlüğü Tutma"),
-
-                const Spacer(),
-
-                // --- FİYAT KARTLARI ---
-                // 1. Seçenek: Pahalı olan (Kıyaslama için)
-                _buildPriceCard(
-                  title: "Aylık Abonelik",
-                  price: "₺29.99 / Ay",
-                  isBestValue: false,
-                ),
-                const SizedBox(height: 15),
-                
-                // 2. Seçenek: Bizim satmak istediğimiz (Ucuz & Ömür Boyu)
-                _buildPriceCard(
-                  title: "Ömür Boyu Erişim",
-                  price: "₺59.99 Tek Sefer",
-                  isBestValue: true, // "En İyi Fiyat" etiketi
-                  onTap: () {
-                    // BURADA SATIN ALMA TETİKLENECEK
-                    print("Satın alma tıklandı");
-                  },
-                ),
-
-                const SizedBox(height: 20),
-                const Text(
-                  "Satın alma işlemi iTunes/Google hesabından tahsil edilir.",
-                  style: TextStyle(color: Colors.white24, fontSize: 10),
-                ),
-              ],
-            ),
-          ),
-        ),
+      backgroundColor: AppTheme.background,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: AppTheme.accentGold),
       ),
-    );
-  }
+      body: _isLoading 
+        ? const Center(child: CircularProgressIndicator(color: AppTheme.accentGold))
+        : SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                children: [
+                  const Icon(Icons.workspace_premium, size: 80, color: AppTheme.accentGold)
+                      .animate().scale(duration: 500.ms, curve: Curves.elasticOut),
+                  const SizedBox(height: 20),
+                  Text("Kahin'in Gözü", style: AppTheme.darkTheme.textTheme.displayLarge).animate().fade().slideY(),
+                  const SizedBox(height: 10),
+                  const Text(
+                    "Sınırsız rüya yorumu, reklamsız deneyim ve size özel mistik şamanik/islami yorum stillerinin kilidini açın.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white70, fontSize: 16),
+                  ).animate().fade(delay: 200.ms),
+                  
+                  const SizedBox(height: 40),
 
-  Widget _buildFeatureItem(String text) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        children: [
-          const Icon(Icons.check_circle, color: AppTheme.accentGold, size: 20),
-          const SizedBox(width: 10),
-          Text(text, style: const TextStyle(color: Colors.white, fontSize: 15)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPriceCard({
-    required String title,
-    required String price,
-    required bool isBestValue,
-    VoidCallback? onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isBestValue ? AppTheme.accentGold : Colors.white.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(16),
-          border: isBestValue ? null : Border.all(color: Colors.white24),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (isBestValue)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    margin: const EdgeInsets.only(bottom: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.black,
-                      borderRadius: BorderRadius.circular(8),
+                  // EĞER PAKET YOKSA (Google Play Console Ayarları Tamamlanmamışsa)
+                  if (_packages.isEmpty)
+                    const Text(
+                      "Şu an mağazaya ulaşılamıyor. Google Play Console ayarlarının yapılması gerekiyor.",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.redAccent),
+                    )
+                  else
+                    // PAKETLERİ LİSTELE
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: _packages.length,
+                        itemBuilder: (context, index) {
+                          final package = _packages[index];
+                          return Card(
+                            color: AppTheme.cardColor,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                              side: BorderSide(color: AppTheme.accentGold.withOpacity(0.5)),
+                            ),
+                            margin: const EdgeInsets.only(bottom: 16),
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                              title: Text(
+                                package.storeProduct.title,
+                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                              ),
+                              subtitle: Text(
+                                package.storeProduct.description,
+                                style: const TextStyle(color: Colors.white54),
+                              ),
+                              trailing: _isPurchasing 
+                                ? const CircularProgressIndicator(color: AppTheme.accentGold)
+                                : ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppTheme.accentGold,
+                                      foregroundColor: Colors.black,
+                                    ),
+                                    onPressed: () => _buyPackage(package),
+                                    child: Text(package.storeProduct.priceString), // Gerçek fiyat burada yazacak (örn: ₺49.99)
+                                  ),
+                            ),
+                          ).animate().fade(delay: (400 + (index * 100)).ms).slideX();
+                        },
+                      ),
                     ),
-                    child: const Text("EN ÇOK SATAN", style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
-                  ),
-                Text(
-                  title,
-                  style: TextStyle(
-                    color: isBestValue ? Colors.black : Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-              ],
-            ),
-            Text(
-              price,
-              style: TextStyle(
-                color: isBestValue ? Colors.black : Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
+                ],
               ),
             ),
-          ],
-        ),
-      ),
+          ),
     );
   }
 }

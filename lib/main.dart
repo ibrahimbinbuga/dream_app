@@ -1,6 +1,7 @@
 import 'package:dream_app/core/theme.dart';
 import 'package:dream_app/screens/auth_screen.dart';
 import 'package:dream_app/services/auth_service.dart';
+import 'package:dream_app/services/purchase_service.dart';
 import 'package:firebase_core/firebase_core.dart'; // Ekle
 import 'package:flutter/material.dart';
 import 'package:dream_app/core/theme.dart';
@@ -25,6 +26,9 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   await MobileAds.instance.initialize();
+
+  // YENİ: Ödeme servisini başlat
+  await PurchaseService.init();
 
   runApp(const MyApp());
 }
