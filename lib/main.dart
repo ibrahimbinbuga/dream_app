@@ -10,6 +10,7 @@ import 'package:dream_app/screens/home_screen.dart';
 import 'package:dream_app/services/auth_service.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'services/purchase_service.dart';
 
 
 // Firebase ayar dosyası (Bunu birazdan oluşturacağız, şimdilik hata verebilir)
@@ -25,6 +26,7 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  await PurchaseService.init();
   await MobileAds.instance.initialize();
 
   // YENİ: Ödeme servisini başlat
