@@ -4,7 +4,7 @@ import 'package:purchases_flutter/purchases_flutter.dart';
 
 class PurchaseService {
   // RevenueCat panelinden aldığımız API Anahtarı
-  static const String _apiKey = 'test_DOAUsJDZpDWboRIbDFQsNfZhCoN'; 
+  static const String _apiKey = 'appl_OnzcdpEzgoqgEWBtpukYuIJAPba'; 
 
   // Uygulama açıldığında kasiyeri uyandıran fonksiyon
   static Future<void> init() async {
